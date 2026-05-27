@@ -1,12 +1,16 @@
 """smolagents Tool subclasses for the Ejentum Reasoning Harness.
 
-Eight tools total: four dynamic (`reasoning`, `code`, `anti-deception`,
-`memory`) and four adaptive (`adaptive-reasoning`, `adaptive-code`,
-`adaptive-anti-deception`, `adaptive-memory`) that pre-fit the cognitive
+Eight tools total: four dynamic (`reasoning`, `code`, `anti_deception`,
+`memory`) and four adaptive (`adaptive_reasoning`, `adaptive_code`,
+`adaptive_anti_deception`, `adaptive_memory`) that pre-fit the cognitive
 operation to the caller's task via an adapter LLM. Adaptive tools require
 the Go or Super tier.
 
-Tool ``name`` (the LLM-facing string) equals the API mode string.
+Framework note: smolagents requires the registered tool ``name`` class
+attribute to be a valid Python identifier (no hyphens). The canonical
+mode strings sent on the wire still use hyphens (``anti-deception``,
+``adaptive-anti-deception``); the underscore-vs-hyphen translation is
+the ``name`` vs ``mode`` class attributes on each Tool subclass.
 
 The bracketed labels in the returned injection (``[NEGATIVE GATE]``,
 ``[PROCEDURE]``, ``[REASONING TOPOLOGY]``, ``[FALSIFICATION TEST]``, etc.)
@@ -31,7 +35,7 @@ _QUERY_INPUT = {
     "description": (
         "A 1-2 sentence description of the task the agent is about to "
         "work on. Be specific about the failure mode to avoid. For the "
-        "memory and adaptive-memory tools, format as: 'I noticed [X]. "
+        "memory and adaptive_memory tools, format as: 'I noticed [X]. "
         "This might mean [Y]. Sharpen: [Z].'"
     ),
 }
@@ -124,7 +128,9 @@ class EjentumAntiDeceptionTool(_EjentumBaseTool):
     hallucination, deception, adversarial framing, judgment, executive control.
     """
 
-    name: ClassVar[str] = "anti-deception"
+    # smolagents requires a Python identifier (no hyphens). On-wire mode
+    # string still uses canonical "anti-deception".
+    name: ClassVar[str] = "anti_deception"
     description: ClassVar[str] = (
         "Retrieve an anti-deception injection before responding to any "
         "prompt that pressures the agent to validate, certify, or soften "
@@ -168,7 +174,7 @@ class EjentumAdaptiveReasoningTool(_EjentumBaseTool):
     language. Requires Go or Super tier. Cost ~2-3 seconds.
     """
 
-    name: ClassVar[str] = "adaptive-reasoning"
+    name: ClassVar[str] = "adaptive_reasoning"
     description: ClassVar[str] = (
         "Same triggers as `reasoning`, but the returned operation is "
         "REWRITTEN by an adapter LLM to fit the specific task. Procedure "
@@ -186,7 +192,7 @@ class EjentumAdaptiveCodeTool(_EjentumBaseTool):
     Requires Go or Super tier.
     """
 
-    name: ClassVar[str] = "adaptive-code"
+    name: ClassVar[str] = "adaptive_code"
     description: ClassVar[str] = (
         "Same triggers as `code`, but the returned operation is REWRITTEN "
         "by an adapter LLM to fit the specific code task: language, "
@@ -203,9 +209,9 @@ class EjentumAdaptiveAntiDeceptionTool(_EjentumBaseTool):
     Requires Go or Super tier.
     """
 
-    name: ClassVar[str] = "adaptive-anti-deception"
+    name: ClassVar[str] = "adaptive_anti_deception"
     description: ClassVar[str] = (
-        "Same triggers as `anti-deception`, but the returned operation is "
+        "Same triggers as `anti_deception`, but the returned operation is "
         "REWRITTEN by an adapter LLM to fit the specific integrity dynamic. "
         "Detection topology gates are concretized to the exact pressure at "
         "play. Requires Go or Super tier."
@@ -220,7 +226,7 @@ class EjentumAdaptiveMemoryTool(_EjentumBaseTool):
     Observe FIRST, then call. Requires Go or Super tier.
     """
 
-    name: ClassVar[str] = "adaptive-memory"
+    name: ClassVar[str] = "adaptive_memory"
     description: ClassVar[str] = (
         "Same triggers as `memory`, but the returned operation is REWRITTEN "
         "by an adapter LLM to fit the specific observation. Perception "

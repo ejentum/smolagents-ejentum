@@ -1,7 +1,8 @@
 """HTTP helper for the Ejentum Logic API.
 
-Internal module: not part of the public API. Used by the four Tool
-subclasses in :mod:`smolagents_ejentum.tools`.
+Internal module: not part of the public API. Used by the eight Tool
+subclasses in :mod:`smolagents_ejentum.tools` (four dynamic, four
+adaptive).
 """
 
 from __future__ import annotations
