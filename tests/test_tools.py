@@ -6,6 +6,10 @@ import pytest
 from smolagents import Tool
 
 from smolagents_ejentum import (
+    EjentumAdaptiveAntiDeceptionTool,
+    EjentumAdaptiveCodeTool,
+    EjentumAdaptiveMemoryTool,
+    EjentumAdaptiveReasoningTool,
     EjentumAntiDeceptionTool,
     EjentumCodeTool,
     EjentumMemoryTool,
@@ -30,24 +34,28 @@ def _mock_response(
 # ---------------------------------------------------------------------------
 
 
+_ALL_TOOL_CLASSES = (
+    EjentumReasoningTool,
+    EjentumCodeTool,
+    EjentumAntiDeceptionTool,
+    EjentumMemoryTool,
+    EjentumAdaptiveReasoningTool,
+    EjentumAdaptiveCodeTool,
+    EjentumAdaptiveAntiDeceptionTool,
+    EjentumAdaptiveMemoryTool,
+)
+
+
 def test_each_tool_is_smolagents_tool_subclass():
-    for cls in (
-        EjentumReasoningTool,
-        EjentumCodeTool,
-        EjentumAntiDeceptionTool,
-        EjentumMemoryTool,
-    ):
+    for cls in _ALL_TOOL_CLASSES:
         assert issubclass(cls, Tool), f"{cls.__name__} must subclass smolagents.Tool"
 
 
 def test_each_tool_has_required_smolagents_class_attributes():
-    for cls in (
-        EjentumReasoningTool,
-        EjentumCodeTool,
-        EjentumAntiDeceptionTool,
-        EjentumMemoryTool,
-    ):
-        assert isinstance(cls.name, str) and cls.name.startswith("ejentum_harness_")
+    for cls in _ALL_TOOL_CLASSES:
+        # smolagents requires tool name to be a valid Python identifier
+        # (no hyphens). The on-wire `mode` is the canonical hyphenated form.
+        assert isinstance(cls.name, str) and cls.name.isidentifier()
         assert isinstance(cls.description, str) and len(cls.description) > 50
         assert isinstance(cls.inputs, dict) and "query" in cls.inputs
         assert cls.inputs["query"]["type"] == "string"
@@ -55,13 +63,8 @@ def test_each_tool_has_required_smolagents_class_attributes():
 
 
 def test_tool_names_are_unique():
-    names = {
-        EjentumReasoningTool.name,
-        EjentumCodeTool.name,
-        EjentumAntiDeceptionTool.name,
-        EjentumMemoryTool.name,
-    }
-    assert len(names) == 4
+    names = {cls.name for cls in _ALL_TOOL_CLASSES}
+    assert len(names) == 8
 
 
 # ---------------------------------------------------------------------------
@@ -69,15 +72,19 @@ def test_tool_names_are_unique():
 # ---------------------------------------------------------------------------
 
 
-def test_factory_returns_four_tools():
+def test_factory_returns_eight_tools():
     tools = ejentum_tools()
-    assert len(tools) == 4
+    assert len(tools) == 8
     assert all(isinstance(t, Tool) for t in tools)
     assert {t.name for t in tools} == {
-        "ejentum_harness_reasoning",
-        "ejentum_harness_code",
-        "ejentum_harness_anti_deception",
-        "ejentum_harness_memory",
+        "reasoning",
+        "code",
+        "anti_deception",
+        "memory",
+        "adaptive_reasoning",
+        "adaptive_code",
+        "adaptive_anti_deception",
+        "adaptive_memory",
     }
 
 
@@ -105,6 +112,10 @@ def test_factory_propagates_shared_config():
         (EjentumCodeTool, "code"),
         (EjentumAntiDeceptionTool, "anti-deception"),
         (EjentumMemoryTool, "memory"),
+        (EjentumAdaptiveReasoningTool, "adaptive-reasoning"),
+        (EjentumAdaptiveCodeTool, "adaptive-code"),
+        (EjentumAdaptiveAntiDeceptionTool, "adaptive-anti-deception"),
+        (EjentumAdaptiveMemoryTool, "adaptive-memory"),
     ],
 )
 @patch("smolagents_ejentum._api.requests.post")
@@ -118,7 +129,7 @@ def test_each_tool_dispatches_correct_mode(mock_post, cls, mode, monkeypatch):
     tool = cls()
     query = (
         "I noticed drift. This might mean Y. Sharpen: Z."
-        if mode == "memory"
+        if "memory" in mode
         else "sample task"
     )
     result = tool.forward(query)
